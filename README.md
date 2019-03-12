@@ -199,4 +199,4 @@ $config->clear(true);
 
 作者邮箱： 985558837@qq.com
 
-作者博客： [http://blog.gdmonlam.com](http://blog.gdmon.com)
+作者博客： [http://blog.gdmon.com](http://blog.gdmon.com)

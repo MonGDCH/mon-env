@@ -1,0 +1,24 @@
+map:
+
+  Block style: !!map
+    Clark : Evans
+    Ingy  : döt Net
+    Oren  : Ben-Kiki
+  Flow style: !!map { Clark: Evans, Ingy: döt Net, Oren: Ben-Kiki }
+
+omap:
+
+  Bestiary: !!omap
+    - aardvark: African pig-like ant eater. Ugly.
+    - anteater: South-American ant eater. Two species.
+
+  Numbers: !!omap [ one: 1, two: 2, three : 3 ]
+
+pairs:
+  
+  Block tasks: !!pairs
+    - meeting: with team.
+    - meeting: with boss.
+    - break: lunch.
+    - meeting: with client.
+  Flow tasks: !!pairs [ meeting: with team, meeting: with boss ]

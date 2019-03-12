@@ -1,0 +1,25 @@
+{
+    "name": "mongdch/mon-env",
+    "description": "the php env config utils.",
+    "version" : "1.0.0",
+    "license": "MIT",
+    "keywords": [
+        "config",
+        "env",
+        "php"
+    ],
+    "authors": [
+        {
+            "name": "MonGDCH",
+            "email": "985558837@qq.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "mon\\env\\" : "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.0.0"
+    }
+}

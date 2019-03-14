@@ -1,5 +1,5 @@
 <?php
-namespace Mon\Env;
+namespace mon\env;
 
 use Exception;
 

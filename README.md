@@ -13,29 +13,8 @@ composer require mongdch/mon-env
 
 ## 文档说明
 
-#### 设置当前环境
-> Config env(string $env = 'prd')
-
-参数说明：
-
-|参数名|是否必须|类型|说明|
-|:----|:---|:----- |-----|
-| env | 否  | string | 当前运行环境标识符，默认prd |
-
-
-例子：
-
-```php
-// 获取单例时设置
-$instance = \mon\env\Config::instance('dev');
-
-// 调用env方法设置
-$instance = \mon\env\Config::instance()->env('dev');
-
-```
-
 #### 注册配置
-> array register(array $config, string $env = '')
+> array register(array $config)
 
 注意：register方法只支持直接的数组注册
 
@@ -44,13 +23,12 @@ $instance = \mon\env\Config::instance()->env('dev');
 |参数名|是否必须|类型|说明|
 |:----|:---|:----- |-----|
 | config | 是  | array | 注册的配置信息 |
-| env | 否  | string | 注册配置信息的对应环境，默认当前环境 |
 
 例子：
 
 ```php
 // 获取单例时设置
-$config = \mon\env\Config::instance()->register($config, $env);
+$config = \mon\env\Config::instance()->register($config);
 
 ```
 
@@ -92,7 +70,7 @@ $config = \mon\env\Config::instance()->parse($file, 'arr', $aliasName);
 ```
 
 #### 设置配置信息
-> array set($key, $value = null, $env = '')
+> array set($key, $value = null)
 
 参数说明：
 
@@ -100,7 +78,6 @@ $config = \mon\env\Config::instance()->parse($file, 'arr', $aliasName);
 |:----|:---|:----- |-----|
 | key | 是  | array|string | 配置信息，或配置节点名称 |
 | value | 否  | data | 配置信息 |
-| env | 否  | string | 配置信息的对应环境，默认当前环境 |
 
 例子：
 
@@ -113,7 +90,7 @@ $config = \mon\env\Config::instance()->parse($file, 'arr', $aliasName);
 ```
 
 #### 获取配置信息
-> data get(string $key = '', $default = null, string $env = '')
+> data get(string $key = '', $default = null)
 
 参数说明：
 
@@ -121,7 +98,6 @@ $config = \mon\env\Config::instance()->parse($file, 'arr', $aliasName);
 |:----|:---|:----- |-----|
 | key | 否  | string | 配置节点名称, 默认返回当前环境下所有配置 |
 | default | 否  | data | 默认值 |
-| env | 否  | string | 配置信息的对应环境，默认当前环境 |
 
 例子：
 
@@ -138,14 +114,13 @@ $res = $config->get('demo3', 'aa');
 ```
 
 #### 判断配置信息是否存在
-> bool has(string $key, string $env = '')
+> bool has(string $key)
 
 参数说明：
 
 |参数名|是否必须|类型|说明|
 |:----|:---|:----- |-----|
 | key | 是  | string | 配置节点名称 |
-| env | 否  | string | 配置信息的对应环境，默认当前环境 |
 
 例子：
 
@@ -158,29 +133,27 @@ $exists = $config->has('test2.a');
 ```
 
 #### 清空配置信息
-> Config clear($env = '')
+> Config clear()
 
-参数说明：
 
-|参数名|是否必须|类型|说明|
-|:----|:---|:----- |-----|
-| env | 否  | bool|string | 配置信息的对应环境，默认当前环境，为true时，清空所有配置 |
 
 例子：
 
 ```php
 // 清楚当前环境配置信息
 $config->clear();
-// 清楚指定环境配置信息
-$config->clear('dev');
-// 清楚所有环境配置信息
-$config->clear(true);
+
 ```
 
 
 ---
 
 # 版本
+
+### 1.0.2
+
+* 移除初始化配置空间
+* 优化代码
 
 ### 1.0.1
 

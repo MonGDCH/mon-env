@@ -1,14 +1,14 @@
 <?php
 namespace mon\env;
 
-use Exception;
+use InvalidArgumentException;
 
 /**
  * 配置信息类
  *
  * @author Mon <985558837@qq.com>
- * @version 1.2 增加xml、ini、json、yaml等解析驱动
- * @version 1.3 增加环境设置
+ * @version 1.0.1 增加xml、ini、json、yaml等解析驱动
+ * @version 1.0.2 调整代码，移除环境配置
  */
 class Config
 {
@@ -27,13 +27,6 @@ class Config
     public $config = [];
 
     /**
-     * 命名空间
-     *
-     * @var string
-     */
-    public $env;
-
-    /**
      * 驱动类型
      *
      * @var [type]
@@ -45,13 +38,12 @@ class Config
     /**
      * 获取单例
      *
-     * @param  string $env 环境命名空间
      * @return [type]      [description]
      */
-    public static function instance(string $env = 'prd')
+    public static function instance()
     {
         if(!self::$instance){
-            self::$instance = new self($env);
+            self::$instance = new self();
         }
 
         return self::$instance;
@@ -59,29 +51,8 @@ class Config
 
     /**
      * 私有化构造方法
-     * 
-     * @param string $env 环境命名空间
      */
-    protected function __construct(string $env = 'prd')
-    {
-        $this->env($env);
-    }
-
-    /**
-     * 环境设置
-     *
-     * @param  string $env 环境命名空间
-     * @return [type]      [description]
-     */
-    public function env(string $env)
-    {
-        $this->env = $env;
-        if(!isset($this->config[$this->env])){
-            $this->config[$this->env] = [];
-        }
-
-        return $this;
-    }
+    protected function __construct(){}
 
     /**
      * 注册配置
@@ -89,13 +60,11 @@ class Config
      * @param  array  $config 配置信息
      * @return [type]         [description]
      */
-    public function register(array $config, string $env = '')
+    public function register(array $config)
     {
-        $env = $env ?: $this->env;
-
         // 合并获取配置信息
-        $this->config[$env] = array_merge($this->config[$env], $config);
-        return $this->config[$env];
+        $this->config = array_merge($this->config, $config);
+        return $this->config;
     }
 
     /**
@@ -108,7 +77,7 @@ class Config
     public function load(string $file, string $alias = '')
     {
         if(!file_exists($file)){
-            throw new Exception("config file not found! [{$file}]");
+            throw new InvalidArgumentException("config file not found! [{$file}]");
         }
 
         $type = pathinfo($file, PATHINFO_EXTENSION);
@@ -128,7 +97,7 @@ class Config
     public function parse($config, string $type, string $alias = '')
     {
         if(!in_array(strtolower($type), $this->drive)){
-            throw new Exception("config type is not supported");
+            throw new InvalidArgumentException("config type is not supported");
         }
         $class = (false !== strpos($type, '\\')) ? $type : '\\mon\\env\\libs\\' . ucwords($type);
         $config = (new $class())->parse($config);
@@ -146,21 +115,20 @@ class Config
      * @param [type] $key   [description]
      * @param [type] $value [description]
      */
-    public function set($key, $value = null, $env = '')
+    public function set($key, $value = null)
     {
-        $env = $env ?: $this->env;
         if(is_array($key)){
             // 数组，批量注册
-            return $this->register($key, $env);
+            return $this->register($key);
         }
         elseif(is_string($key)){
             // 字符串，节点配置
             if (!strpos($key, '.')) {
-                $this->config[$env][$key] = $value;
+                $this->config[$key] = $value;
             }
             else{
                 $name = explode('.', $key, 2);
-                $this->config[$env][$name[0]][$name[1]] = $value;
+                $this->config[ $name[0] ][ $name[1] ] = $value;
             }
 
         }
@@ -174,15 +142,14 @@ class Config
      * @param  [type] $default [description]
      * @return [type]          [description]
      */
-    public function get(string $key = '', $default = null, string $env = '')
+    public function get(string $key = '', $default = null)
     {
-        $env = $env ?: $this->env;
         if(empty($key)){
-            return $this->config[$env];
+            return $this->config;
         }
         // 以"."分割，支持多纬度配置信息获取
         $name = explode('.', $key);
-        $data = $this->config[$env];
+        $data = $this->config;
         for($i = 0, $len = count($name); $i < $len; $i++)
         {
             // 不存在配置节点，返回默认值
@@ -200,19 +167,17 @@ class Config
      * 判断配置节点是否存在
      *
      * @param  string  $name [description]
-     * @param  string  $env  [description]
      * @return boolean       [description]
      */
-    public function has(string $key, string $env = '')
+    public function has(string $key)
     {
-        $env = $env ?: $this->env;
         if(!strpos($key, '.')){
-            return isset($this->config[$env][$key]);
+            return isset($this->config[$key]);
         }
 
         // 以"."分割，支持多纬度配置信息获取
         $name = explode('.', $key);
-        $data = $this->config[$env];
+        $data = $this->config;
         for($i = 0, $len = count($name); $i < $len; $i++)
         {
             // 不存在配置节点，返回默认值
@@ -230,13 +195,9 @@ class Config
      *
      * @return [type] [description]
      */
-    public function clear($env = '')
+    public function clear()
     {
-        $env = $env ?: $this->env;
-        if($env === true){
-            $this->config = [];
-        }
-        $this->config[$env] = [];
+        $this->config = [];
 
         return $this;
     }

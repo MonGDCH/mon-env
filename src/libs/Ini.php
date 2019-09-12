@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\env\libs;
 
 /**
@@ -17,10 +18,10 @@ class Ini
      */
     public function parse($config)
     {
-        if(is_file($config)){
+        if (is_file($config)) {
             return parse_ini_file($config, true);
         }
-            
+
         return parse_ini_string($config, true);
     }
 }

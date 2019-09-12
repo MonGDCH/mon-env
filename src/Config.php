@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\env;
 
 use InvalidArgumentException;
@@ -9,6 +10,7 @@ use InvalidArgumentException;
  * @author Mon <985558837@qq.com>
  * @version 1.0.1 增加xml、ini、json、yaml等解析驱动
  * @version 1.0.2 调整代码，移除环境配置
+ * @version 1.0.3 优化代码，降低版本要求为5.6
  */
 class Config
 {
@@ -29,7 +31,7 @@ class Config
     /**
      * 驱动类型
      *
-     * @var [type]
+     * @var array
      */
     protected $drive = [
         'arr', 'ini', 'json', 'xml', 'yaml'
@@ -42,7 +44,7 @@ class Config
      */
     public static function instance()
     {
-        if(!self::$instance){
+        if (!self::$instance) {
             self::$instance = new self();
         }
 
@@ -52,7 +54,8 @@ class Config
     /**
      * 私有化构造方法
      */
-    protected function __construct(){}
+    protected function __construct()
+    { }
 
     /**
      * 注册配置
@@ -70,13 +73,13 @@ class Config
     /**
      * 加载配置文件
      *
-     * @param  [type] $config 扩展配置文件名
-     * @param  [type] $alias  配置节点别名
+     * @param  string $config 扩展配置文件名
+     * @param  string $alias  配置节点别名
      * @return [type]         [description]
      */
-    public function load(string $file, string $alias = '')
+    public function load($file, $alias = '')
     {
-        if(!file_exists($file)){
+        if (!file_exists($file)) {
             throw new InvalidArgumentException("config file not found! [{$file}]");
         }
 
@@ -94,15 +97,15 @@ class Config
      * @param  string $alias  [description]
      * @return [type]         [description]
      */
-    public function parse($config, string $type, string $alias = '')
+    public function parse($config, $type, $alias = '')
     {
-        if(!in_array(strtolower($type), $this->drive)){
+        if (!in_array(strtolower($type), $this->drive)) {
             throw new InvalidArgumentException("config type is not supported");
         }
         $class = (false !== strpos($type, '\\')) ? $type : '\\mon\\env\\libs\\' . ucwords($type);
         $config = (new $class())->parse($config);
 
-        if(empty($alias)){
+        if (empty($alias)) {
             return $this->set($config);
         }
 
@@ -117,20 +120,17 @@ class Config
      */
     public function set($key, $value = null)
     {
-        if(is_array($key)){
+        if (is_array($key)) {
             // 数组，批量注册
-            return $this->register($key);
-        }
-        elseif(is_string($key)){
+            return $this->register((array)$key);
+        } elseif (is_string($key)) {
             // 字符串，节点配置
             if (!strpos($key, '.')) {
                 $this->config[$key] = $value;
-            }
-            else{
+            } else {
                 $name = explode('.', $key, 2);
-                $this->config[ $name[0] ][ $name[1] ] = $value;
+                $this->config[$name[0]][$name[1]] = $value;
             }
-
         }
         return $value;
     }
@@ -138,26 +138,25 @@ class Config
     /**
      * 获取配置信息内容, 可以通过'.'分割获取无限级节点数据
      *
-     * @param  [type] $key     [description]
+     * @param  string $key     [description]
      * @param  [type] $default [description]
      * @return [type]          [description]
      */
-    public function get(string $key = '', $default = null)
+    public function get($key = '', $default = null)
     {
-        if(empty($key)){
+        if (empty($key)) {
             return $this->config;
         }
         // 以"."分割，支持多纬度配置信息获取
         $name = explode('.', $key);
         $data = $this->config;
-        for($i = 0, $len = count($name); $i < $len; $i++)
-        {
+        for ($i = 0, $len = count($name); $i < $len; $i++) {
             // 不存在配置节点，返回默认值
-            if(!isset($data[ $name[$i] ])){
+            if (!isset($data[$name[$i]])) {
                 $data = $default;
                 break;
             }
-            $data = $data[ $name[$i] ];
+            $data = $data[$name[$i]];
         }
 
         return $data;
@@ -169,19 +168,18 @@ class Config
      * @param  string  $name [description]
      * @return boolean       [description]
      */
-    public function has(string $key)
+    public function has($key)
     {
-        if(!strpos($key, '.')){
+        if (!strpos($key, '.')) {
             return isset($this->config[$key]);
         }
 
         // 以"."分割，支持多纬度配置信息获取
         $name = explode('.', $key);
         $data = $this->config;
-        for($i = 0, $len = count($name); $i < $len; $i++)
-        {
+        for ($i = 0, $len = count($name); $i < $len; $i++) {
             // 不存在配置节点，返回默认值
-            if(!isset($data[$name[$i]])){
+            if (!isset($data[$name[$i]])) {
                 return false;
             }
             $data = $data[$name[$i]];

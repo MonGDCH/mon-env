@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\env\libs;
 
 use BadFunctionCallException;
@@ -19,14 +20,13 @@ class Yaml
      */
     public function parse($config)
     {
-        if(!function_exists('yaml_parse_file') || !function_exists('yaml_parse')){
+        if (!function_exists('yaml_parse_file') || !function_exists('yaml_parse')) {
             throw new BadFunctionCallException("PECL-yaml is not installed.");
         }
 
-        if(is_file($config)){
+        if (is_file($config)) {
             $config = yaml_parse_file($config);
-        }
-        else{
+        } else {
             $config = yaml_parse($config);
         }
 

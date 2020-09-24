@@ -13,8 +13,8 @@ class Arr
     /**
      * 解析配置
      *
-     * @param  [type] $config 数组，或者文件路径
-     * @return [type]         [description]
+     * @param  mixed $config 数组，或者文件路径
+     * @return array
      */
     public function parse($config)
     {

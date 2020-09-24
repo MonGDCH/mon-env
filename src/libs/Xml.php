@@ -13,8 +13,8 @@ class Xml
     /**
      * 解析配置
      *
-     * @param  [type] $config xml串，或者文件路径
-     * @return [type]         [description]
+     * @param  string $config xml串，或者文件路径
+     * @return array
      */
     public function parse($config)
     {

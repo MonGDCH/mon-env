@@ -13,8 +13,8 @@ class Ini
     /**
      * 解析配置
      *
-     * @param  [type] $config 字符串，或者文件路径
-     * @return [type]         [description]
+     * @param  mixed $config 字符串，或者文件路径
+     * @return array
      */
     public function parse($config)
     {

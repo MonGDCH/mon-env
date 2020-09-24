@@ -11,13 +11,14 @@ use InvalidArgumentException;
  * @version 1.0.1 增加xml、ini、json、yaml等解析驱动
  * @version 1.0.2 调整代码，移除环境配置
  * @version 1.0.3 优化代码，降低版本要求为5.6
+ * @version 1.0.4 优化代码，增强注解
  */
 class Config
 {
     /**
      * 单例实现
      *
-     * @var [type]
+     * @var Config
      */
     protected static $instance;
 
@@ -40,7 +41,7 @@ class Config
     /**
      * 获取单例
      *
-     * @return [type]      [description]
+     * @return Config
      */
     public static function instance()
     {
@@ -55,13 +56,13 @@ class Config
      * 私有化构造方法
      */
     protected function __construct()
-    { }
+    {}
 
     /**
      * 注册配置
      *
      * @param  array  $config 配置信息
-     * @return [type]         [description]
+     * @return array 配置信息
      */
     public function register(array $config)
     {
@@ -73,9 +74,9 @@ class Config
     /**
      * 加载配置文件
      *
-     * @param  string $config 扩展配置文件名
-     * @param  string $alias  配置节点别名
-     * @return [type]         [description]
+     * @param  string $config 配置文件路径
+     * @param  string $alias  配置节点名称，空则表示全局
+     * @return array 配置信息
      */
     public function load($file, $alias = '')
     {
@@ -92,10 +93,10 @@ class Config
     /**
      * 解析配置
      *
-     * @param  [type] $config [description]
-     * @param  string $type   [description]
-     * @param  string $alias  [description]
-     * @return [type]         [description]
+     * @param  mixed  $config 配置文件路径或配置值
+     * @param  string $type   配置类型，支持arr、ini、json、xml、yaml等格式
+     * @param  string $alias  配置节点名称，空则表示全局
+     * @return array 配置信息
      */
     public function parse($config, $type, $alias = '')
     {
@@ -115,8 +116,8 @@ class Config
     /**
      * 动态设置配置信息, 最多通过'.'分割设置2级配置
      *
-     * @param [type] $key   [description]
-     * @param [type] $value [description]
+     * @param mixed  $key   数组代码重新设置配置信息，字符串则修改指定的配置键值（支持.分割多级配置）
+     * @param mixed  $value 配置值，当key值为字符串类型是有效
      */
     public function set($key, $value = null)
     {
@@ -138,9 +139,9 @@ class Config
     /**
      * 获取配置信息内容, 可以通过'.'分割获取无限级节点数据
      *
-     * @param  string $key     [description]
-     * @param  [type] $default [description]
-     * @return [type]          [description]
+     * @param  string $key     配置键名（支持.分割多级配置），空则获取所有配置信息
+     * @param  mixed  $default 默认值
+     * @return mixed 配置信息
      */
     public function get($key = '', $default = null)
     {
@@ -165,8 +166,8 @@ class Config
     /**
      * 判断配置节点是否存在
      *
-     * @param  string  $name [description]
-     * @return boolean       [description]
+     * @param  string  $name 配置键名（支持.分割多级配置）
+     * @return boolean
      */
     public function has($key)
     {
@@ -191,7 +192,7 @@ class Config
     /**
      * 清空配置信息
      *
-     * @return [type] [description]
+     * @return Config
      */
     public function clear()
     {

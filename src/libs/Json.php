@@ -13,8 +13,8 @@ class Json
     /**
      * 解析配置
      *
-     * @param  [type] $config json串，或者文件路径
-     * @return [type]         [description]
+     * @param  string $config json串，或者文件路径
+     * @return array
      */
     public function parse($config)
     {

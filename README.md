@@ -184,4 +184,3 @@ $config->clear();
 
 作者邮箱： 985558837@qq.com
 
-作者博客： [http://blog.gdmon.com](http://blog.gdmon.com)

@@ -1,7 +1,6 @@
 {
     "name": "mongdch/mon-env",
-    "description": "the php env config utils.",
-    "version" : "1.0.4",
+    "description": "The php env config utils.",
     "license": "MIT",
     "keywords": [
         "config",

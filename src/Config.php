@@ -2,7 +2,13 @@
 
 namespace mon\env;
 
+use mon\env\libs\Arr;
+use mon\env\libs\Ini;
+use mon\env\libs\Xml;
+use mon\env\libs\Json;
+use mon\env\libs\Yaml;
 use InvalidArgumentException;
+use mon\env\interfaces\Handler;
 
 /**
  * 配置信息类
@@ -12,6 +18,7 @@ use InvalidArgumentException;
  * @version 1.0.2 调整代码，移除环境配置
  * @version 1.0.3 优化代码，降低版本要求为5.6
  * @version 1.0.4 优化代码，增强注解
+ * @version 1.0.5 2022-08-10 优化架构，增加 extend 方法用于扩展解析驱动 
  */
 class Config
 {
@@ -34,9 +41,20 @@ class Config
      *
      * @var array
      */
-    protected $drive = [
-        'arr', 'ini', 'json', 'xml', 'yaml'
+    protected $driveType = [
+        'arr'   => Arr::class,
+        'ini'   => Ini::class,
+        'json'  => Json::class,
+        'xml'   => Xml::class,
+        'yaml'  => Yaml::class
     ];
+
+    /**
+     * 创建的驱动实例缓存
+     *
+     * @var Handler[]
+     */
+    protected $drive = [];
 
     /**
      * 获取单例
@@ -56,7 +74,8 @@ class Config
      * 私有化构造方法
      */
     protected function __construct()
-    {}
+    {
+    }
 
     /**
      * 注册配置
@@ -74,18 +93,23 @@ class Config
     /**
      * 加载配置文件
      *
-     * @param  string $config 配置文件路径
-     * @param  string $alias  配置节点名称，空则表示全局
+     * @param string $config 配置文件路径
+     * @param string $alias  配置节点名称，空则表示全局
+     * @param string $type   驱动类型，默认更新文件后缀名
+     * @throws InvalidArgumentException
      * @return array 配置信息
      */
-    public function load($file, $alias = '')
+    public function load($file, $alias = '', $type = '')
     {
-        if (!file_exists($file)) {
+        if (!is_file($file)) {
             throw new InvalidArgumentException("config file not found! [{$file}]");
         }
 
-        $type = pathinfo($file, PATHINFO_EXTENSION);
-        $type = $type == 'php' ? 'arr' : $type;
+        // 获取驱动类型
+        if (!$type) {
+            $type = pathinfo($file, PATHINFO_EXTENSION);
+            $type = $type == 'php' ? 'arr' : $type;
+        }
 
         return $this->parse($file, $type, $alias);
     }
@@ -96,21 +120,22 @@ class Config
      * @param  mixed  $config 配置文件路径或配置值
      * @param  string $type   配置类型，支持arr、ini、json、xml、yaml等格式
      * @param  string $alias  配置节点名称，空则表示全局
+     * @throws InvalidArgumentException
      * @return array 配置信息
      */
     public function parse($config, $type, $alias = '')
     {
-        if (!in_array(strtolower($type), $this->drive)) {
+        if (!in_array(strtolower($type), array_keys($this->driveType))) {
             throw new InvalidArgumentException("config type is not supported");
         }
-        $class = (false !== strpos($type, '\\')) ? $type : '\\mon\\env\\libs\\' . ucwords($type);
-        $config = (new $class())->parse($config);
 
-        if (empty($alias)) {
-            return $this->set($config);
+        // 加载驱动，解析配置
+        if (!isset($this->drive[$type])) {
+            $this->drive[$type] = new $this->driveType[$type];
         }
+        $config = $this->drive[$type]->parse($config);
 
-        return $this->set($alias, $config);
+        return empty($alias) ? $this->set($config) : $this->set($alias, $config);
     }
 
     /**
@@ -118,12 +143,13 @@ class Config
      *
      * @param mixed  $key   数组代码重新设置配置信息，字符串则修改指定的配置键值（支持.分割多级配置）
      * @param mixed  $value 配置值，当key值为字符串类型是有效
+     * @return mixed    配置信息
      */
     public function set($key, $value = null)
     {
         if (is_array($key)) {
             // 数组，批量注册
-            return $this->register((array)$key);
+            return $this->register($key);
         } elseif (is_string($key)) {
             // 字符串，节点配置
             if (!strpos($key, '.')) {
@@ -187,6 +213,33 @@ class Config
         }
 
         return true;
+    }
+
+    /**
+     * 获取支持的驱动
+     *
+     * @return array
+     */
+    public function drive()
+    {
+        return $this->driveType;
+    }
+
+    /**
+     * 扩展支持的驱动
+     *
+     * @param string $name  驱动名称
+     * @param string $drive 驱动类名
+     * @return Config
+     */
+    public function extend($name, $drive)
+    {
+        if (!$drive instanceof Handler) {
+            throw new InvalidArgumentException('Drive needs implement the ' . Handler::class);
+        }
+
+        $this->driveType[$name] = $drive;
+        return $this;
     }
 
     /**

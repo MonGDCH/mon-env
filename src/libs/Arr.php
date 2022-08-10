@@ -2,13 +2,15 @@
 
 namespace mon\env\libs;
 
+use mon\env\interfaces\Handler;
+
 /**
  * 数组解析
  *
  * @author Mon <985558837@qq.com>
  * @version v1.0
  */
-class Arr
+class Arr implements Handler
 {
     /**
      * 解析配置

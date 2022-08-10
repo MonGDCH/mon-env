@@ -2,13 +2,15 @@
 
 namespace mon\env\libs;
 
+use mon\env\interfaces\Handler;
+
 /**
  * Ini解析
  *
  * @author Mon <985558837@qq.com>
  * @version v1.0
  */
-class Ini
+class Ini implements Handler
 {
     /**
      * 解析配置

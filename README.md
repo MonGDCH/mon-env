@@ -4,6 +4,7 @@
 
 * 支持运行环境判定, 用于区分开发环境、生产环境等
 * 多种配置文件格式支持, 支持array、json、ini、xml、yaml等类型
+* 支持自定义扩展配置文件解析驱动
 
 ## 安装
 
@@ -85,6 +86,7 @@ $config = \mon\env\Config::instance()->parse($file, 'arr', $aliasName);
 // 设置数据
 \mon\env\Config::instance()->set('test1', 1);
 \mon\env\Config::instance()->set('test2', [1, 2, 'a' => 3]);
+\mon\env\Config::instance()->set('test3.a.b', '支持二级配置');
 \mon\env\Config::instance()->set(['demo1' => 1, 'demo2' => 2]);
 
 ```
@@ -150,7 +152,11 @@ $config->clear();
 
 # 版本
 
-### 1.0.14
+### 1.0.5
+
+* 优化架构，增加`extend`方法用于扩展解析驱动
+
+### 1.0.4
 
 * 优化代码，增强注解
 

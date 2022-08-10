@@ -3,6 +3,7 @@
 namespace mon\env\libs;
 
 use BadFunctionCallException;
+use mon\env\interfaces\Handler;
 
 /**
  * yaml解析
@@ -10,7 +11,7 @@ use BadFunctionCallException;
  * @author Mon <985558837@qq.com>
  * @version v1.0
  */
-class Yaml
+class Yaml implements Handler
 {
     /**
      * 解析配置

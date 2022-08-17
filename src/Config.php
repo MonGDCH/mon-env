@@ -2,12 +2,15 @@
 
 namespace mon\env;
 
-use mon\env\libs\Arr;
+use mon\env\libs\Php;
 use mon\env\libs\Ini;
 use mon\env\libs\Xml;
 use mon\env\libs\Json;
 use mon\env\libs\Yaml;
+use FilesystemIterator;
 use InvalidArgumentException;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 use mon\env\interfaces\Handler;
 
 /**
@@ -42,7 +45,7 @@ class Config
      * @var array
      */
     protected $driveType = [
-        'arr'   => Arr::class,
+        'php'   => Php::class,
         'ini'   => Ini::class,
         'json'  => Json::class,
         'xml'   => Xml::class,
@@ -95,11 +98,11 @@ class Config
      *
      * @param string $config 配置文件路径
      * @param string $alias  配置节点名称，空则表示全局
-     * @param string $type   驱动类型，默认更新文件后缀名
+     * @param string $type   驱动类型，默认文件扩展名
      * @throws InvalidArgumentException
-     * @return array 配置信息
+     * @return mixed 配置信息
      */
-    public function load($file, $alias = '', $type = '')
+    public function loadFile($file, $alias = '', $type = '')
     {
         if (!is_file($file)) {
             throw new InvalidArgumentException("config file not found! [{$file}]");
@@ -108,22 +111,67 @@ class Config
         // 获取驱动类型
         if (!$type) {
             $type = pathinfo($file, PATHINFO_EXTENSION);
-            $type = $type == 'php' ? 'arr' : $type;
         }
 
-        return $this->parse($file, $type, $alias);
+        $config = $this->parse($file, $type);
+        return empty($alias) ? $this->set($config) : $this->set($alias, $config);
+    }
+
+    /**
+     * 加载配置文件目录
+     *
+     * @param string $dir           目录路径
+     * @param boolean $recursive    是否递归所有目录
+     * @param array $exts           配置文件扩展名白名单
+     * @param string $alias         配置节点名称，空则表示全局
+     * @return mixed 配置信息
+     */
+    public function loadDir($dir, $recursive = true, $exts = [], $alias = '')
+    {
+        $dirConfig = [];
+        // 获取指定目录内容
+        $iterator = new RecursiveDirectoryIterator($dir, FilesystemIterator::FOLLOW_SYMLINKS);
+        // 是否递归目录
+        $iterator = $recursive ? new RecursiveIteratorIterator($iterator) : $iterator;
+        // 解析配置
+        foreach ($iterator as $file) {
+            // 验证过滤配置文件
+            $ext = $file->getExtension();
+            if ($file->isDir() || (!empty($exts) && !in_array($ext, $exts))) {
+                continue;
+            }
+            // 整理获取路径
+            $relative_path = str_replace($dir, '', $file->getPath());
+            $explode = array_reverse(explode(DIRECTORY_SEPARATOR, $relative_path));
+            // 获取配置信息
+            $config = $this->parse($file->getPathname(), $ext);
+            // 整理配置信息
+            $itemConfig = [];
+            $itemName = $file->getBasename('.' . $ext);
+            $itemConfig[$itemName] = $config;
+            foreach ($explode as $item) {
+                if (empty($item)) {
+                    continue;
+                }
+                $tmp = [];
+                $tmp[$item] = $itemConfig;
+                $itemConfig = $tmp;
+            }
+            $dirConfig = array_replace_recursive($dirConfig, $itemConfig);
+        }
+
+        return empty($alias) ? $this->set($dirConfig) : $this->set($alias, $dirConfig);
     }
 
     /**
      * 解析配置
      *
      * @param  mixed  $config 配置文件路径或配置值
-     * @param  string $type   配置类型，支持arr、ini、json、xml、yaml等格式
-     * @param  string $alias  配置节点名称，空则表示全局
+     * @param  string $type   配置类型，支持php、ini、json、xml、yaml等格式
      * @throws InvalidArgumentException
      * @return array 配置信息
      */
-    public function parse($config, $type, $alias = '')
+    public function parse($config, $type)
     {
         if (!in_array(strtolower($type), array_keys($this->driveType))) {
             throw new InvalidArgumentException("config type is not supported");
@@ -133,17 +181,16 @@ class Config
         if (!isset($this->drive[$type])) {
             $this->drive[$type] = new $this->driveType[$type];
         }
-        $config = $this->drive[$type]->parse($config);
 
-        return empty($alias) ? $this->set($config) : $this->set($alias, $config);
+        return $this->drive[$type]->parse($config);
     }
 
     /**
      * 动态设置配置信息, 最多通过'.'分割设置2级配置
      *
-     * @param mixed  $key   数组代码重新设置配置信息，字符串则修改指定的配置键值（支持.分割多级配置）
-     * @param mixed  $value 配置值，当key值为字符串类型是有效
-     * @return mixed    配置信息
+     * @param string|array $key 数组代码重新设置配置信息，字符串则修改指定的配置键值（支持.分割多级配置）
+     * @param mixed $value 配置值，当key值为字符串类型时有效
+     * @return mixed 配置信息
      */
     public function set($key, $value = null)
     {
@@ -165,8 +212,8 @@ class Config
     /**
      * 获取配置信息内容, 可以通过'.'分割获取无限级节点数据
      *
-     * @param  string $key     配置键名（支持.分割多级配置），空则获取所有配置信息
-     * @param  mixed  $default 默认值
+     * @param string $key     配置键名（支持.分割多级配置），空则获取所有配置信息
+     * @param mixed  $default 默认值
      * @return mixed 配置信息
      */
     public function get($key = '', $default = null)
@@ -216,6 +263,18 @@ class Config
     }
 
     /**
+     * 清空配置信息
+     *
+     * @return Config
+     */
+    public function clear()
+    {
+        $this->config = [];
+
+        return $this;
+    }
+
+    /**
      * 获取支持的驱动
      *
      * @return array
@@ -239,18 +298,6 @@ class Config
         }
 
         $this->driveType[$name] = $drive;
-        return $this;
-    }
-
-    /**
-     * 清空配置信息
-     *
-     * @return Config
-     */
-    public function clear()
-    {
-        $this->config = [];
-
         return $this;
     }
 }

@@ -29,12 +29,16 @@ $config->clear();
 $res = $config->get();
 
 
-// load 加载配置文件
-// $config->load(__DIR__ . '/config/test.php');            // 数组类型
-$config->load(__DIR__ . '/config/test.ini', '', 'ini');     // ini类型
-// $config->load(__DIR__ . '/config/test.xml', 'xml');     // xml类型
-// $config->load(__DIR__ . '/config/test.yaml');           // yaml类型
-// $config->load(__DIR__ . '/../composer.json', 'json');   // json类型
+// loadFile 加载配置文件
+// $config->loadFile(__DIR__ . '/config/php.php');            // 数组类型
+// $config->loadFile(__DIR__ . '/config/ini.ini', '', 'ini');     // ini类型
+// $config->loadFile(__DIR__ . '/config/xml.xml', 'xml');     // xml类型
+// $config->loadFile(__DIR__ . '/config/yaml.yaml');           // yaml类型
+// $config->loadFile(__DIR__ . '/../composer.json', 'json');   // json类型
+
+// loadDir 加载配置文件目录
+
+$config->loadDir(__DIR__  . '/config');
 
 $res = $config->get();
 

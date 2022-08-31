@@ -7,7 +7,6 @@ use mon\env\libs\Ini;
 use mon\env\libs\Xml;
 use mon\env\libs\Json;
 use mon\env\libs\Yaml;
-use FilesystemIterator;
 use InvalidArgumentException;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
@@ -130,7 +129,7 @@ class Config
     {
         $dirConfig = [];
         // 获取指定目录内容
-        $iterator = new RecursiveDirectoryIterator($dir, FilesystemIterator::FOLLOW_SYMLINKS);
+        $iterator = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS | RecursiveDirectoryIterator::FOLLOW_SYMLINKS);
         // 是否递归目录
         $iterator = $recursive ? new RecursiveIteratorIterator($iterator) : $iterator;
         // 解析配置

@@ -8,7 +8,7 @@ use ErrorException;
  * 环境配置 .env 文件驱动
  * 
  * @author Mon <985558837@qq.com>
- * @version 1.0.0
+ * @version 1.0.1 增加 # 开头备注过滤
  */
 class Env
 {
@@ -63,7 +63,7 @@ class Env
         $result = [];
         foreach ($list as $line) {
             $item = trim($line);
-            if (empty($item)) {
+            if (empty($item) || (strpos($item, '#') === 0)) {
                 continue;
             }
             $data = explode('=', $item, 2);
